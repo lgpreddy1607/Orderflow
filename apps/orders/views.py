@@ -1,0 +1,36 @@
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+from apps.orders.services import create_order
+from .serializers import OrderCreateSerializer
+from .models import User
+
+
+class OrderCreateView(APIView):
+
+    def post(self, request):
+        serializer = OrderCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # 🔴 get idempotency key from header
+        idempotency_key = request.headers.get("Idempotency-Key")
+
+        user = request.user if request.user.is_authenticated else User.objects.first()
+
+        try:
+            order = create_order(
+                user=user,
+                items=serializer.validated_data["items"],
+                idempotency_key=idempotency_key
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            {"order_id": order.id, "status": order.status},
+            status=status.HTTP_201_CREATED
+        )
