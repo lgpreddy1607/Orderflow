@@ -41,10 +41,10 @@ class OrderCreateView(APIView):
 
 
 class OrderListView(ListAPIView):
-    queryset = Order.objects.all().order_by("-id")
+    queryset = Order.objects.prefetch_related("items").all().order_by("-id")
     serializer_class = OrderOutputSerializer
 
 
 class OrderDetailView(RetrieveAPIView):
-    queryset = Order.objects.all()
+    queryset = Order.objects.prefetch_related("items").all()
     serializer_class = OrderOutputSerializer
