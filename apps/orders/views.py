@@ -1,10 +1,14 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 
+from django.contrib.auth.models import User
+
+from apps.orders.models import Order
 from apps.orders.services import create_order
-from .serializers import OrderCreateSerializer
-from .models import User
+
+from .serializers import OrderOutputSerializer, OrderCreateSerializer
 
 
 class OrderCreateView(APIView):
@@ -34,3 +38,13 @@ class OrderCreateView(APIView):
             {"order_id": order.id, "status": order.status},
             status=status.HTTP_201_CREATED
         )
+
+
+class OrderListView(ListAPIView):
+    queryset = Order.objects.prefetch_related("items").all().order_by("-id")
+    serializer_class = OrderOutputSerializer
+
+
+class OrderDetailView(RetrieveAPIView):
+    queryset = Order.objects.prefetch_related("items").all()
+    serializer_class = OrderOutputSerializer
