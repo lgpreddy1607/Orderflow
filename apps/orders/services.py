@@ -40,3 +40,15 @@ def create_order(user, items, idempotency_key=None):
             )
 
         return order
+
+def delete_order(order_id):
+    with transaction.atomic():
+        order = Order.objects.select_for_update().get(id=order_id)
+
+        # restore stock
+        for item in order.items.all():
+            product = Product.objects.select_for_update().get(id=item.product_id)
+            product.stock += item.quantity
+            product.save()
+
+        order.delete()
