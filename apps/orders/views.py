@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+import time
 
 from django.contrib.auth.models import User
 
@@ -43,6 +44,10 @@ class OrderCreateView(APIView):
 class OrderListView(ListAPIView):
     queryset = Order.objects.prefetch_related("items").all().order_by("-id")
     serializer_class = OrderOutputSerializer
+
+    def list(self, request, *args, **kwargs):
+        time.sleep(10)  # simulate slow operation
+        return super().list(request, *args, **kwargs)
 
 
 class OrderDetailView(RetrieveAPIView):
