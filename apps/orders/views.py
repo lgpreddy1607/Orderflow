@@ -1,9 +1,17 @@
+import time
+import logging
+from django.http import StreamingHttpResponse
+
+logger = logging.getLogger(__name__)
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.decorators import api_view
 
 from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
 
 from apps.orders.models import Order
 from apps.orders.services import create_order, delete_order
@@ -54,3 +62,25 @@ class OrderDeleteView(APIView):
     def delete(self, request, order_id):
         delete_order(order_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+# =========================
+# NGINX BUFFERING TEST ENDPOINTS
+# =========================
+
+@api_view(["GET"])
+def buffered_test(request):
+    return Response({
+        "status": "ok",
+        "message": "fast response"
+    })
+
+@csrf_exempt
+def streaming_test(request):
+    def generator():
+        for i in range(5):
+            logger.info(f"Streaming chunk {i}")
+            yield f"chunk {i}\n".encode()
+            time.sleep(1)
+
+    return StreamingHttpResponse(generator(), content_type="text/plain")
