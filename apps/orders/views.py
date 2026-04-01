@@ -6,7 +6,7 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 from django.contrib.auth.models import User
 
 from apps.orders.models import Order
-from apps.orders.services import create_order
+from apps.orders.services import create_order, delete_order
 
 from .serializers import OrderOutputSerializer, OrderCreateSerializer
 
@@ -48,3 +48,9 @@ class OrderListView(ListAPIView):
 class OrderDetailView(RetrieveAPIView):
     queryset = Order.objects.prefetch_related("items").all()
     serializer_class = OrderOutputSerializer
+
+
+class OrderDeleteView(APIView):
+    def delete(self, request, order_id):
+        delete_order(order_id)
+        return Response(status=status.HTTP_204_NO_CONTENT)
