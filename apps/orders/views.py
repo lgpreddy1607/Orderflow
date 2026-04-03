@@ -2,7 +2,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.decorators import api_view
+
 import time
+import logging
+logger = logging.getLogger(__name__)
 
 from django.contrib.auth.models import User
 
@@ -59,3 +63,11 @@ class OrderDeleteView(APIView):
     def delete(self, request, order_id):
         delete_order(order_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
+     
+    
+@api_view(["GET"])
+def slow_response(request):
+    logger.info("START slow_response")
+    time.sleep(5)
+    logger.info("END slow_response")
+    return Response({"status": "done after delay"})
